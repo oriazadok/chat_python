@@ -1,0 +1,19 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="socket" />
+          <option value="select" />
+          <option value="myserver.print" />
+          <option value="myserver.len" />
+          <option value="myserver.Exception" />
+          <option value="myclient.print" />
+          <option value="myclient.input" />
+          <option value="threading" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
