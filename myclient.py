@@ -1,200 +1,213 @@
+from optparse import Option
 import socket
 import threading
+import tkinter
+from tkinter import *
+from tkinter import ttk
+import tkinter.scrolledtext
+from tkinter import Entry, PhotoImage, simpledialog
+from turtle import width
+from unicodedata import name
+from unittest.main import main
+import time
 
-client = socket.socket()
-PORT = 5050
 SERVER_ADDRESS = "127.0.0.1"
-ADDR = (SERVER_ADDRESS, PORT)
-name = ""
-onlineClients = []
+PORT = 5050
 
-udpClinetSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+class Client:
 
-"""
-PROTOCOL:
-Private message: <p><name><to><message>
-Public message: <g><message>
-List of users: <u>
-List of files: <f>
-Download: <d><file_name>
-Proceed: <r>
+    """
+    PROTOCOL:
+    Public message: <g><message>
+    Private message: <p><name><to><message>
+    List of users: <u>
+    """
 
-"""
+    def __init__(self, addr, port) -> None:
 
-def printMenu():
-    print("Menu: ")
-    print("\t 1. to log in type \"login\"")
-    print("\t 2. to log out type \"logout\"")
-    print("\t 3. to send private message type \"private\"")
-    print("\t 4. to send global message in type \"global\"")
-    print("\t 5. to get a list of online members type \"online\"")
-    print("\t 6. to get a list of files type \"files\"")
-    print("\t 7. to download a file type \"download\"")
+        self.addr = addr
+        self.port = port
+        self.login = False
+        
+        self.onlineClients = ["all"]
 
-    print("\t 8. to log in type \"proceed\"")
+        self.name = "user"
 
-    print("\t 9. to change type \"change\"")
+        self.gui_done = False
+        self.running = False
 
-    print("pick an option: ")
+        # gui thread
+        gui_thread = threading.Thread(target=self.gui)
+        gui_thread.start()
 
-def logIn():
-    client.connect(ADDR)
-    print("Insert Your name: ")
-    global name
-    name = input()
-    client.send(name.encode())
-    print("logging in")
-def logOut():
-    logout = True
-    client.close()
+        # receiving thread
+        receive_message_thread = threading.Thread(target=self.receive)
+        receive_message_thread.start()
 
-def sendToOtherClient():
-    getOnlineUsers()
-    print("pick a friend to chat with: ")
-    to = input()
-    if(to not in onlineClients):
-        print("no such name in the chat, please try again")
-        sendToOtherClient()
-    print("to change a friend to chat with type \"swap\"")
-    print(f"send message for {to}")
-    while True:
-        msg = input()
-        if(msg == ""):
-            continue
-        if (msg == "change"):
-            print("getting out of private")
-            break
-        if(msg == "swap"):
-            getOnlineUsers()
-            print("pick a friend to chat with: ")
-            to = input()
-            if (to not in onlineClients):
-                print("no such name in the chat, please try again")
-                sendToOtherClient()
-            continue
-        msg = ("<p><" + name + "><" + to + "><" + msg + ">").encode()
-        client.send(msg)
-    print()
-    printMenu()
-def sendEveryone():
-    print("send message for everyone")
-    while True:
-        msg = input()
-        if (msg == ""):
-            continue
-        if (msg == "change"):
-            print("getting out of global")
-            break
+    def getName(self):
+        w = tkinter.Tk()
+        w.withdraw()
+        n = simpledialog.askstring("Insert name", "Please insert your name", parent=w)
+        return n 
 
-        msg = ("<g><" + name + "><" + msg + ">").encode()
-        client.send(msg)
+    def gui(self):
+        self.win = tkinter.Tk()
+        self.win.geometry("750x630")
+        self.win.resizable(False,False)
 
-    print()
-    printMenu()
+        icon = PhotoImage(file='icon.png')
+        self.win.iconphoto(True, icon)
 
-def getOnlineUsers():
-    msg = "<u>".encode()
-    client.send(msg)
-def getFilesList():
-    msg = "<f>".encode()
-    client.send(msg)
+        self.win.title("chat massenger")
+        self.win.configure(bg="gray")
 
+        # log button
+        self.log_button = tkinter.Button(self.win, text="Log in", command=self.log)
+        self.log_button.config(font=("Arial", 12))
+        self.log_button.place(x = 40, y = 15)
 
-def downloadRequest():
-    getFilesList()
-    print("pick a file to download: ")
-    while True:
-        file = input()
-        if (file == "change"):
-            break
-        msg = ("<d><" + name + "><" + file + ">").encode()
-        # client.send(msg)
-        # udpClinetSocket.sendto(msg, ("127.0.0.1", 5051))
-        # udpClinetSocket.sendto("check".encode(), ("127.0.0.1", 5051))
+        # name label
+        self.name_label = tkinter.Label(self.win, text="Name: ", bg="gray")
+        self.name_label.config(font=("Arial", 12))
+        self.name_label.place(x = 180, y = 18)
 
-# def downloadFile():
-#     msg = "<r>".encode()
-#     client.send(msg)
+        # name text area
+        self.name_area = Entry(self.win, width=30)
+        self.name_area.place(x = 280, y =  18)
+        self.name_area.config(font=("Arial", 12))
+        self.name_area.insert(0, self.name)
+        self.name_area.config(state='disabled')
+        
+        # text area
+        self.text_area = tkinter.scrolledtext.ScrolledText(self.win)
+        self.text_area.place(x = 40, y = 70)
+        self.text_area.config(state='disabled')
 
+        # message label
+        self.msg_label = tkinter.Label(self.win, text="Message: ", bg="gray")
+        self.msg_label.config(font=("Arial", 12))
+        self.msg_label.place(x=350, y=465)
 
-def sendMessage():
-    printMenu()
-    while True:
-        str = input()
-        if (str == "login"):
-            logIn()
-            continue
-        if (str == "logout"):
-            logOut()
-            if (logout == True):
-                print("break number 2")
-                break
+        # input area
+        self.input_area = tkinter.Text(self.win, height=3)
+        self.input_area.place(x=40, y=500)
 
-        if (str == "global"):
-            sendEveryone()
-            continue
-        if (str == "private"):
-            sendToOtherClient()
-            continue
+        # to
+        self.send_button = tkinter.Label(self.win, text="To: ", bg="gray")
+        self.send_button.config(font=("Arial", 12))
+        self.send_button.place(x=40, y=560)
 
-        if (str == "online"):
-            getOnlineUsers()
-            continue
-        if (str == "files"):
-            getFilesList()
-            continue
+        # to text area
+        self.to = tkinter.StringVar()
+        self.combobox = ttk.Combobox(self.win, width = 27, textvariable=self.to, state="readonly", postcommand=self.updateOnLineList)
+        
+        # Adding combobox drop down list
+        self.combobox['values'] = self.onlineClients
+        self.combobox.grid(column = 1, row = 5)
+        self.combobox.place(x=80, y=565)
+        self.combobox.current(0)
 
-        if (str == "download"):
-            downloadRequest()
-            continue
+        # send button
+        self.send_button = tkinter.Button(self.win, text="Send", command=self.send)
+        self.send_button.config(font=("Arial", 12))
+        self.send_button.place(x=350, y=560)
 
+        # clear button
+        self.clear_button = tkinter.Button(self.win, text="Clear", command=self.clear)
+        self.clear_button.config(font=("Arial", 12))
+        self.clear_button.place(x = 650, y = 18)
+
+        self.gui_done = True
+
+        self.win.protocol("WM_DELETE_WINDOW", self.exit)
+
+        self.win.mainloop()
+
+    def updateOnLineList(self):
+        self.getOnlineUsers()
+        time.sleep(0.2)
+        self.combobox['values'] = self.onlineClients
+
+    def log(self):
+        if self.login == False:
+            self.log_button["state"] = "disabled"
+            self.name = self.getName()
+            while self.name == None:
+                self.name = self.getName()
+
+            self.name_area.config(state='normal')
+            self.name_area.delete(0, END)
+            self.name_area.insert(0, self.name)
+            self.name_area.config(state='disabled')
+
+            self.log_button['text'] = 'Log out'
+            self.log_button["state"] = "normal"
+            self.sock = socket.socket()
+            self.sock.connect((self.addr, self.port))
+            self.sock.send(self.name.encode())
+
+            self.running = True
+            self.login = True
+            print("logging in")
         else:
-            print("please try again, and check for no extra spaces")
+            self.sock.close()
+            self.log_button['text'] = 'Log in'
+            self.login = False
+            print("logging out")
 
-logout = False
-t = threading.Thread(target=sendMessage)
-t.start()
+    def getOnlineUsers(self):
+        if self.login == True:
+            msg = "<u>".encode()
+            self.sock.send(msg)
 
-# def getFiles():
-#     while True:
-#         if (logout == True):
-#             print("break")
-#             break
-#         try:
-#
-#             # if(recv[1:3] == "rf"):
-#             #     recv = recv[4:]
-#             #     with open("new_file_2.txt", "w+") as f:
-#             #         f.write(recv)
-#             #     f.close()
-#             #     continue
-#             print("in udp")
-#             udprecv = udpClinetSocket.recvfrom(1024)
-#             print(udprecv[0].decode())
-#         except:
-#             pass
-#
-# u = threading.Thread(target=getFiles)
-# u.start()
+    def send(self):
+        msg = ""
+        if (self.to.get() == "all"):
+            msg = ("<g><" + self.name + "><" + self.input_area.get('1.0', 'end') + ">")
+        else:
+            msg = ("<p><" + self.name + "><" + self.to.get() + "><" + self.input_area.get('1.0', 'end') + ">")
 
+        self.sock.send(msg.encode())
+        self.input_area.delete('1.0', 'end')
 
-while True:
-    if (logout == True):
-        print("break")
-        break
-    try:
-        recv = client.recv(1024).decode()
-        if("---online users names---\n" in recv):
-            l = recv.split("\n")[1].split(", ")
-            onlineClients = l
-        print(recv)
-    except:
-        pass
+    def clear(self):
+        self.text_area.config(state='normal')
+        self.text_area.delete(1.0, END)
+        self.text_area.config(state='disabled')
 
-    try:
-        udprecv = udpClinetSocket.recvfrom(1024)
-        # print(udprecv[0].decode())
+    def exit(self):
+        self.running = False
+        self.win.destroy()
+        self.sock.close()
+        exit(0)
 
+    def receive(self):
+        
+        while True:
+            if self.running == False:
+                continue
 
-    except:
-        pass
+            try:
+                recv = self.sock.recv(1024).decode()
+                if("---online users names---\n" in recv):
+                    l = recv.split("\n")[1].split(", ")
+                    self.onlineClients.clear()
+                    self.onlineClients.append("all")
+                    for name in l:
+                        self.onlineClients.append(name)
+                    
+                elif self.gui_done:
+                    self.text_area.config(state='normal')
+                    self.text_area.insert('end', recv)
+                    self.text_area.yview('end')
+                    self.text_area.config(state='disabled')
+
+            except ConnectionAbortedError:
+                break
+            except:
+                print("Error")
+                self.sock.close()
+                break
+    
+client = Client(SERVER_ADDRESS, PORT)
+

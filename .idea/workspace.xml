@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e40f6785-2e3c-4da2-bf37-9104132e8374" name="Changes" comment="" />
+    <list default="true" id="e40f6785-2e3c-4da2-bf37-9104132e8374" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/myclient.py" beforeDir="false" afterPath="$PROJECT_DIR$/myclient.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/myserver.py" beforeDir="false" afterPath="$PROJECT_DIR$/myserver.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -44,7 +49,7 @@
       <recent name="C:\Users\oriaz\Desktop\final_assignment" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.chat_server">
+  <component name="RunManager" selected="Python.myserver">
     <configuration name="chat_client" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -130,15 +135,15 @@
       <method v="2" />
     </configuration>
     <configuration name="myserver" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="final_assignment" />
+      <module name="chat_python" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="" />
+      <option name="SDK_HOME" value="C:\Users\oriaz\PycharmProjects\largeFile\venv\Scripts\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/myserver.py" />
@@ -152,10 +157,10 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.myserver" />
         <item itemvalue="Python.chat_server" />
         <item itemvalue="Python.chat_client" />
         <item itemvalue="Python.myclient" />
-        <item itemvalue="Python.myserver" />
         <item itemvalue="Python.gui" />
       </list>
     </recent_temporary>
