@@ -1,14 +1,12 @@
-from optparse import Option
 import socket
 import threading
 import tkinter
 from tkinter import *
 from tkinter import ttk
 import tkinter.scrolledtext
-from tkinter import Entry, PhotoImage, simpledialog
+from tkinter import Entry, simpledialog
 from turtle import width
-from unicodedata import name
-from unittest.main import main
+from PIL import Image, ImageTk
 import time
 
 SERVER_ADDRESS = "127.0.0.1"
@@ -55,7 +53,12 @@ class Client:
         self.win.geometry("750x630")
         self.win.resizable(False,False)
 
-        icon = PhotoImage(file='icon.png')
+        # icon = PhotoImage(file='icon.ico')
+        # self.win.iconphoto(True, icon)
+
+        # Load the .ico file using PIL and convert it to a PhotoImage
+        icon = Image.open('icon.ico')
+        icon = ImageTk.PhotoImage(icon)
         self.win.iconphoto(True, icon)
 
         self.win.title("chat massenger")
